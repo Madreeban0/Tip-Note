@@ -10,7 +10,7 @@ public class Webconfig implements WebMvcConfigurer {
      @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Allow CORS for all endpoints
-            .allowedOrigins("https://tippnote.netlify.app") // Your Netlify frontend URL
+            .allowedOrigins("*") // Your Netlify frontend URL
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Allowed methods
             .allowedHeaders("*") // Allow all headers
             .allowCredentials(true); // Allow credentials
