@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// <-- Removed CSS imports that were causing compilation errors
 
 // --- Icon Components (Simple SVGs) ---
 
@@ -51,8 +50,134 @@ const PinIcon = () => (
   </svg>
 );
 
-// --- 1. Sidebar Component ---
-function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode }) {
+const LogoutIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
+// --- 0. Login Component (NEW) ---
+function LoginComponent({ onLoginSuccess }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // This is where you would make your API call
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // --- TODO: Add your API logic here ---
+    // You'll need to fetch from your backend's login/register endpoints
+    // const API_URL = 'http://localhost:8080/api';
+    // const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
+    //
+    // try {
+    //   const response = await fetch(endpoint, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ email, password }),
+    //   });
+    //   if (!response.ok) {
+    //     const errData = await response.json();
+    //     throw new Error(errData.message || 'Authentication failed');
+    //   }
+    //   const data = await response.json();
+    //   // Assuming your API returns a token or user object...
+    //   // You might want to save a token: localStorage.setItem('token', data.token);
+    //   onLoginSuccess();
+    // } catch (e) {
+    //   setError(e.message);
+    // } finally {
+    //   setLoading(false);
+    // }
+    
+    // --- For Demonstration: Simulating a successful login ---
+    console.log(`Simulating ${isRegistering ? 'register' : 'login'} with:`, { email, password });
+    setTimeout(() => {
+      setLoading(false);
+      onLoginSuccess(); // Tell the App component we are logged in
+    }, 1000);
+    // --- End Demonstration ---
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+        <h1 className="text-4xl font-extrabold text-purple-600 dark:text-purple-400 mb-6 text-center">
+          Welcome to Tipnote
+        </h1>
+        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
+          {isRegistering ? 'Create Account' : 'Sign In'}
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength="6"
+              className="w-full px-3 py-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="••••••••"
+            />
+          </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg text-center">
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-colors duration-200 disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : (isRegistering ? 'Register' : 'Login')}
+          </button>
+        </form>
+        <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
+          {isRegistering ? 'Already have an account?' : "Don't have an account?"}
+          <button
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setError('');
+            }}
+            className="text-purple-600 dark:text-purple-400 hover:underline font-medium ml-1"
+          >
+            {isRegistering ? 'Login' : 'Register'}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+// --- 1. Sidebar Component (MODIFIED) ---
+function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, onLogout }) {
   const navItemClasses = "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors duration-200";
   const activeClasses = "bg-purple-100 dark:bg-gray-700 text-purple-700 dark:text-white font-medium";
   const inactiveClasses = "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700";
@@ -88,13 +213,22 @@ function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode })
         </div>
       </nav>
 
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-2">
         <button
           onClick={onToggleDarkMode}
           className="flex items-center gap-3 w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
         >
           {isDarkMode ? <SunIcon /> : <MoonIcon />}
           <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
+        
+        {/* --- LOGOUT BUTTON (NEW) --- */}
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3 w-full p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+        >
+          <LogoutIcon />
+          <span>Logout</span>
         </button>
       </div>
     </div>
@@ -103,7 +237,7 @@ function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode })
 
 
 // --- 2. Dashboard Component ---
-// Shows all note titles
+// (No changes from your code)
 function Dashboard({ notes, onEdit, onDelete, loading }) {
   return (
     <div className="w-full">
@@ -145,8 +279,7 @@ function Dashboard({ notes, onEdit, onDelete, loading }) {
 }
 
 // --- 3. Pinned Notes Component ---
-// Placeholder - currently just shows all notes
-// To make this real, your backend Note model needs a `pinned` boolean field
+// (No changes from your code)
 function PinnedNotes({ notes, onEdit, onDelete, loading }) {
   
   // In a real app, you would filter notes:
@@ -197,7 +330,7 @@ function PinnedNotes({ notes, onEdit, onDelete, loading }) {
 
 
 // --- 4. Note Editor Component ---
-// Form for creating/editing a note
+// (No changes from your code)
 function NoteEditor({ note, onSave, onBack }) {
   const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
@@ -273,27 +406,17 @@ function NoteEditor({ note, onSave, onBack }) {
   );
 }
 
-// --- 5. Main App Component ---
-// Manages state and API calls
-function App() {
+// --- 5. Main App Component (RENAMED from App) ---
+// This is your original App component, now wrapped by the new Auth gater
+function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   // --- State ---
   const [notes, setNotes] = useState([]);
   const [page, setPage] = useState('dashboard'); // 'dashboard', 'pinned', 'noteEditor'
   const [currentNote, setCurrentNote] = useState(null); // The note being edited
-  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const API_URL = 'http://localhost:8080/api';
-
-  // --- Dark Mode Effect ---
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   // --- API Functions ---
 
@@ -302,6 +425,11 @@ function App() {
     setLoading(true);
     setError('');
     try {
+      // TODO: If your API requires an auth token, you'd add it here:
+      // const token = localStorage.getItem('token');
+      // const headers = { 'Authorization': `Bearer ${token}` };
+      // const response = await fetch(`${API_URL}/notes`, { headers });
+      
       const response = await fetch(`${API_URL}/notes`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -309,7 +437,7 @@ function App() {
       const data = await response.json();
       setNotes(data);
     } catch (e) {
-      setError('Failed to fetch notes.');
+      setError('Failed to fetch notes. Is your backend server running?');
       console.error(e);
     } finally {
       setLoading(false);
@@ -328,6 +456,13 @@ function App() {
     const url = isUpdating ? `${API_URL}/notes/${note.id}` : `${API_URL}/notes`;
 
     try {
+      // TODO: Add auth headers if needed
+      // const token = localStorage.getItem('token');
+      // const headers = { 
+      //   'Content-Type': 'application/json',
+      //   'Authorization': `Bearer ${token}` 
+      // };
+      
       const response = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
@@ -347,14 +482,18 @@ function App() {
 
   // 3. Delete Note (DELETE)
   const handleDeleteNote = async (id) => {
-    // Re-adding the confirm dialog as it's good practice
-    if (!window.confirm('Are you sure you want to delete this note?')) {
-      return;
-    }
+    // NOTE: I am removing window.confirm as it is not allowed in this environment.
+    // In a real app, you would build a custom modal confirmation.
+    // For now, it will delete immediately.
     
     try {
+      // TODO: Add auth headers if needed
+      // const token = localStorage.getItem('token');
+      // const headers = { 'Authorization': `Bearer ${token}` };
+      
       const response = await fetch(`${API_URL}/notes/${id}`, {
         method: 'DELETE',
+        // headers: headers
       });
       if (!response.ok) {
         throw new Error('Failed to delete note.');
@@ -391,7 +530,7 @@ function App() {
 
   // --- Render ---
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex min-h-screen">
       
       {/* --- Sidebar --- */}
       <Sidebar
@@ -400,6 +539,7 @@ function App() {
         onCreateNew={() => handleGoToEditor(null)}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         isDarkMode={isDarkMode}
+        onLogout={onLogout}
       />
 
       {/* --- Main Content Area --- */}
@@ -444,7 +584,44 @@ function App() {
   );
 }
 
-export default App;
 
+// --- 6. App Component (NEW - Auth Gater) ---
+// This is the new main export. It controls auth.
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
 
+  // --- Dark Mode Effect (moved to top level) ---
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    // You might also fetch user data here
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    // You would also clear any stored tokens here
+    // localStorage.removeItem('token');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+      {!isAuthenticated ? (
+        <LoginComponent onLoginSuccess={handleLogin} />
+      ) : (
+        <MainApp 
+          onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
+      )}
+    </div>
+  );
+}
