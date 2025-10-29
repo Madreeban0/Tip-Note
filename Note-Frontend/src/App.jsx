@@ -74,28 +74,28 @@ function LoginComponent({ onLoginSuccess }) {
 
     // --- TODO: Add your API logic here ---
     // You'll need to fetch from your backend's login/register endpoints
-    // const API_URL = 'http://localhost:8080/api';
-    // const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
-    //
-    // try {
-    //   const response = await fetch(endpoint, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ email, password }),
-    //   });
-    //   if (!response.ok) {
-    //     const errData = await response.json();
-    //     throw new Error(errData.message || 'Authentication failed');
-    //   }
-    //   const data = await response.json();
-    //   // Assuming your API returns a token or user object...
-    //   // You might want to save a token: localStorage.setItem('token', data.token);
-    //   onLoginSuccess();
-    // } catch (e) {
-    //   setError(e.message);
-    // } finally {
-    //   setLoading(false);
-    // }
+    const API_URL = 'https://tip-note-1.onrender.com';
+    const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Authentication failed');
+      }
+      const data = await response.json();
+      // Assuming your API returns a token or user object...
+      // You might want to save a token: localStorage.setItem('token', data.token);
+      onLoginSuccess();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
     
     // --- For Demonstration: Simulating a successful login ---
     console.log(`Simulating ${isRegistering ? 'register' : 'login'} with:`, { email, password });
@@ -416,7 +416,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const API_URL = 'http://localhost:8080/api';
+  const API_URL = 'https://tip-note-1.onrender.com';
 
   // --- API Functions ---
 
