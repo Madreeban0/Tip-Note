@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://tippnote.netlify.app/")
 public class noteController {
     
     @Autowired
