@@ -74,7 +74,7 @@ function LoginComponent({ onLoginSuccess }) {
 
     // --- TODO: Add your API logic here ---
     // You'll need to fetch from your backend's login/register endpoints
-    const API_URL = 'https://tip-note-1.onrender.com';
+    const API_URL = 'https://tip-note-2.onrender.com';
     const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
     
     try {
@@ -416,7 +416,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const API_URL = 'https://tip-note-1.onrender.com';
+  const API_URL = 'https://tip-note-2.onrender.com';
 
   // --- API Functions ---
 
