@@ -23,18 +23,13 @@ record AuthRequest(String email, String password) {}
 
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/notes")
 @CrossOrigin(origins = "https://tippnote.netlify.app")
 public class noteController {
     
     @Autowired
     private noteRepository NoteRepository;
-    
-    @GetMapping("/notes")
-    public List<Note> getAllNotes(){
-        return NoteRepository.findAll();
-    }
-       @PostMapping("/register")
+     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody AuthRequest authRequest) {
         // Log to console to show it's working
         System.out.println("Registering user: " + authRequest.email());
@@ -52,12 +47,7 @@ public class noteController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * A placeholder endpoint for user login.
-     * It accepts the user's email and password.
-     *
-     * TODO: Add your real user authentication logic here (e.g., check credentials).
-     */
+  
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest authRequest) {
         // Log to console to show it's working
@@ -78,6 +68,12 @@ public class noteController {
         );
         return ResponseEntity.ok(response);
     }
+    
+    @GetMapping("/notes")
+    public List<Note> getAllNotes(){
+        return NoteRepository.findAll();
+    }
+      
     @PostMapping("/notes")
     public Note createNote(@RequestBody Note note) {
         return NoteRepository.save(note);
