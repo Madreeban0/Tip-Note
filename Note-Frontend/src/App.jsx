@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+// ====================================================================
+// --- CONFIGURATION ---
+// Your single source of truth for the backend URL
+// ====================================================================
 const API_URL = 'https://tipnote.onrender.com';
 // ====================================================================
 
@@ -24,8 +28,6 @@ const SunIcon = () => (
     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
   </svg>
-
-
 );
 
 const PlusIcon = () => (
@@ -64,7 +66,7 @@ const LogoutIcon = () => (
   </svg>
 );
 
-// --- 0. Login Component (FIXED) ---
+// --- 0. Login Component ---
 function LoginComponent({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +79,8 @@ function LoginComponent({ onLoginSuccess }) {
     setLoading(true);
     setError('');
 
-    // Uses the global API_URL
+    // Use the global API_URL
+    // Auth routes are at the root, not /api
     const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
     
     try {
@@ -86,27 +89,23 @@ function LoginComponent({ onLoginSuccess }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Authentication failed');
-      }
-      const data = await response.json();
       
-      // --- THIS IS THE FIX ---
-      // Only call onLoginSuccess AFTER a real, successful API call
-  	  // Assuming your backend sends a token in the response:
-      localStorage.setItem('token', data.token); // You can save your token here
-      onLoginSuccess();
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Use the error message from the backend (e.g., "Email is already in use!")
+        throw new Error(data.message || data || 'Authentication failed');
+      }
+      
+      // Save the token from the response
+      localStorage.setItem('token', data.token); 
+      onLoginSuccess(); // Tell the App component we are logged in
     
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-    
-    // --- THIS IS THE FIX ---
-    // The "Demonstration" block has been REMOVED
-    
   };
 
   return (
@@ -125,7 +124,7 @@ function LoginComponent({ onLoginSuccess }) {
             </label>
             <input
               type="email"
-_             id="email"
+              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -164,7 +163,7 @@ _             id="email"
         <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
           {isRegistering ? 'Already have an account?' : "Don't have an account?"}
           <button
-  	onClick={() => {
+            onClick={() => {
               setIsRegistering(!isRegistering);
               setError('');
             }}
@@ -179,9 +178,8 @@ _             id="email"
 }
 
 
-// --- 1. Sidebar Component (MODIFIED) ---
+// --- 1. Sidebar Component ---
 function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, onLogout }) {
-  // ... (Your sidebar code is perfect, no changes needed)
   const navItemClasses = "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors duration-200";
   const activeClasses = "bg-purple-100 dark:bg-gray-700 text-purple-700 dark:text-white font-medium";
   const inactiveClasses = "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700";
@@ -217,7 +215,7 @@ function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, o
         </div>
       </nav>
 
-    <div className="mt-auto flex flex-col gap-2">
+      <div className="mt-auto flex flex-col gap-2">
         <button
           onClick={onToggleDarkMode}
           className="flex items-center gap-3 w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
@@ -240,9 +238,7 @@ function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, o
 
 
 // --- 2. Dashboard Component ---
-// (No changes from your code)
 function Dashboard({ notes, onEdit, onDelete, loading }) {
-  // ... (Your dashboard code is perfect, no changes needed)
   return (
     <div className="w-full">
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
@@ -257,7 +253,7 @@ function Dashboard({ notes, onEdit, onDelete, loading }) {
           <div
             key={note.id}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col justify-between h-full transition-shadow duration-200 hover:shadow-xl"
-      _   >
+          >
             <h3 className="text-xl font-medium text-purple-700 dark:text-purple-300 mb-4">
               {note.title}
             </h3>
@@ -273,19 +269,17 @@ function Dashboard({ notes, onEdit, onDelete, loading }) {
                 className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg text-sm transition-colors duration-200"
               >
                 Delete
-            	</button>
-          	  </div>
-        	</div>
-      	))}
-      </div>
-  	</div>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 // --- 3. Pinned Notes Component ---
-// (No changes from your code)
 function PinnedNotes({ notes, onEdit, onDelete, loading }) {
-  // ... (Your pinned notes code is perfect, no changes needed)
   return (
     <div className="w-full">
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
@@ -312,7 +306,7 @@ function PinnedNotes({ notes, onEdit, onDelete, loading }) {
                 onClick={() => onEdit(note)}
                 className="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-semibold py-1 px-3 rounded-lg text-sm transition-colors duration-200"
               >
-_               Edit
+                Edit
               </button>
               <button
                 onClick={() => onDelete(note.id)}
@@ -330,7 +324,6 @@ _               Edit
 
 
 // --- 4. Note Editor Component ---
-// (No changes from your code)
 function NoteEditor({ note, onSave, onBack }) {
   const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
@@ -343,8 +336,7 @@ function NoteEditor({ note, onSave, onBack }) {
       content,
     });
   };
-  
-  // ... (Your note editor code is perfect, no changes needed)
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="mb-6">
@@ -367,11 +359,11 @@ function NoteEditor({ note, onSave, onBack }) {
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
             Title
-      	</label>
+          </label>
           <input
             type="text"
             id="title"
-  	value={title}
+            value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title"
             className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 border rounded-lg p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
@@ -380,34 +372,34 @@ function NoteEditor({ note, onSave, onBack }) {
         </div>
         <div>
           <label
-          	htmlFor="content"
+            htmlFor="content"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
             Content
           </label>
           <textarea
-       	id="content"
-          	value={content}
-          	onChange={(e) => setContent(e.target.value)}
-          	placeholder="Write your note here..."
-          	rows="10"
-          	className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 border rounded-lg p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-        	/>
-      	</div>
-      	<div className="flex justify-end">
-        	<button
-          	type="submit"
-          	className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
-        	>
-          	Save Note
-        	</button>
-      	</div>
-      </form>
-  	</div>
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write your note here..."
+            rows="10"
+            className="w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 border rounded-lg p-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+          >
+            Save Note
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
-// --- 5. Main App Component (FIXED) ---
+// --- 5. Main App Component ---
 function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   // --- State ---
   const [notes, setNotes] = useState([]);
@@ -427,23 +419,34 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
     setLoading(true);
     setError('');
     try {
-      // TODO: If your API requires an auth token, you'd add it here:
+      // --- THIS IS THE FIX ---
+      // Get the token from storage
       const token = localStorage.getItem('token');
+      if (!token) {
+        // If no token, log out immediately (or handle refresh token logic)
+        onLogout();
+        throw new Error("No authentication token found.");
+      }
       const headers = { 
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}` 
       };
       
-      // --- THIS IS THE FIX ---
-      // Fetch from the /api/notes endpoint
+      // Fetch from the /api/notes endpoint with auth header
       const response = await fetch(`${API_ROOT}/notes`, { headers });
-    	if (!response.ok) {
+      
+      if (response.status === 401 || response.status === 403) {
+        // Token is invalid or expired
+        onLogout();
+        throw new Error("Invalid or expired token.");
+      }
+      
+      if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
       setNotes(data);
     } catch (e) {
-    	setError('Failed to fetch notes. Is your backend server running?');
+      setError(`Failed to fetch notes: ${e.message}`);
       console.error(e);
     } finally {
       setLoading(false);
@@ -453,19 +456,20 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   // Run fetchNotes() once on load
   useEffect(() => {
     fetchNotes();
-  }, []);
+  }, []); // Only runs once when component mounts
 
   // 2. Save Note (CREATE or UPDATE)
   const handleSaveNote = async (note) => {
     const isUpdating = !!note.id;
     const method = isUpdating ? 'PUT' : 'POST';
-    // --- THIS IS THE FIX ---
     // Use the API_ROOT for the correct path
     const url = isUpdating ? `${API_ROOT}/notes/${note.id}` : `${API_ROOT}/notes`;
 
     try {
-      // TODO: Add auth headers if needed
+      // --- THIS IS THE FIX ---
+      // Get the token and add it to the headers
       const token = localStorage.getItem('token');
+      if (!token) { onLogout(); throw new Error("No authentication token found."); }
       const headers = { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}` 
@@ -475,41 +479,49 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
         method: method,
         headers: headers,
         body: JSON.stringify({ title: note.title, content: note.content }),
-    });
+      });
+      
+      if (response.status === 401 || response.status === 403) { onLogout(); throw new Error("Invalid or expired token."); }
+      
       if (!response.ok) {
         throw new Error('Failed to save note.');
       }
       // After save, go back to dashboard and refresh
       handleGoToDashboard();
-      await fetchNotes();
+      await fetchNotes(); // Re-fetch notes after saving
     } catch (e) {
-      setError(e.message);
-     console.error(e);
+      setError(`Failed to save note: ${e.message}`);
+      console.error(e);
     }
   };
 
   // 3. Delete Note (DELETE)
   const handleDeleteNote = async (id) => {
-    // NOTE: I am removing window.confirm as it is not allowed in this environment.
-    // In a real app, you would build a custom modal confirmation.
+    // NOTE: No confirmation needed in this environment.
     
     try {
-      // TODO: Add auth headers if needed
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-      
       // --- THIS IS THE FIX ---
+      // Get the token and add it to the headers
+      const token = localStorage.getItem('token');
+      if (!token) { onLogout(); throw new Error("No authentication token found."); }
+      const headers = { 
+        'Authorization': `Bearer ${token}` 
+      };
+      
       // Use the API_ROOT for the correct path
       const response = await fetch(`${API_ROOT}/notes/${id}`, {
         method: 'DELETE',
         headers: headers
       });
-    	if (!response.ok) {
+
+      if (response.status === 401 || response.status === 403) { onLogout(); throw new Error("Invalid or expired token."); }
+      
+      if (!response.ok) {
         throw new Error('Failed to delete note.');
-    	}
-      await fetchNotes(); // Refresh the notes list
+      }
+      await fetchNotes(); // Re-fetch notes after deleting
     } catch (e) {
-      setError(e.message);
+      setError(`Failed to delete note: ${e.message}`);
       console.error(e);
     }
   };
@@ -523,7 +535,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
 
   const handleGoToEditor = (note) => {
     setCurrentNote(note); // 'note' is the full note object, or null for a new note
-  setPage('noteEditor');
+    setPage('noteEditor');
     setError('');
   };
 
@@ -531,7 +543,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
     if (pageName === 'dashboard') {
       handleGoToDashboard();
     } else if (pageName === 'pinned') {
-    	setPage('pinned');
+      setPage('pinned');
       setCurrentNote(null);
       setError('');
     }
@@ -543,49 +555,49 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
       
       <Sidebar
         page={page}
-      	onSetPage={handleSetPage}
-      	onCreateNew={() => handleGoToEditor(null)}
-    	onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-      	isDarkMode={isDarkMode}
-      	onLogout={onLogout}
+        onSetPage={handleSetPage}
+        onCreateNew={() => handleGoToEditor(null)}
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        isDarkMode={isDarkMode}
+        onLogout={onLogout}
       />
 
       <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-      	
-      	{error && (
-        	<div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6" role="alert">
-        	  <span className="font-bold">Error:</span>
-        	  <span className="block sm:inline ml-2">{error}</span>
-      	  </div>
-    	)}
+        
+        {error && (
+          <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6" role="alert">
+            <span className="font-bold">Error:</span>
+            <span className="block sm:inline ml-2">{error}</span>
+          </div>
+        )}
 
-      	<main>
-        	{page === 'dashboard' && (
-          	<Dashboard
-          	  notes={notes}
-          	  loading={loading}
-        	  onEdit={handleGoToEditor}
-        	  onDelete={handleDeleteNote}
-        	  />
-      	)}
-      	{page === 'pinned' && (
-          	<PinnedNotes
-          	  notes={notes}
-          	  loading={loading}
-      	  onEdit={handleGoToEditor}
-          	  onDelete={handleDeleteNote}
-        	  />
-        	)}
-        	{page === 'noteEditor' && (
-          	<NoteEditor
-          	  note={currentNote}
-          	  onSave={handleSaveNote}
-     	  onBack={handleGoToDashboard}
-    	    />
-    	  )}
-    	</main>
-      </div>
-  	</div>
+        <main>
+          {page === 'dashboard' && (
+            <Dashboard
+              notes={notes}
+              loading={loading}
+              onEdit={handleGoToEditor}
+              onDelete={handleDeleteNote}
+            />
+          )}
+          {page === 'pinned' && (
+            <PinnedNotes
+              notes={notes}
+              loading={loading}
+              onEdit={handleGoToEditor}
+              onDelete={handleDeleteNote}
+            />
+          )}
+          {page === 'noteEditor' && (
+            <NoteEditor
+              note={currentNote}
+              onSave={handleSaveNote}
+              onBack={handleGoToDashboard}
+            />
+          )}
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -601,31 +613,43 @@ export default function App() {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
- }
+    }
   }, [isDarkMode]);
+
+  // --- THIS IS THE FIX ---
+  // Check for an existing token on app load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // TODO: You could add token validation logic here
+      // For now, if a token exists, we assume they are logged in.
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    // You might also fetch user data here
+    // Trigger a re-render or state update that causes MainApp to fetch notes again
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    // You would also clear any stored tokens here
+    // --- THIS IS THE FIX ---
+    // Clear the token on logout
     localStorage.removeItem('token');
   };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-    	{!isAuthenticated ? (
-      	<LoginComponent onLoginSuccess={handleLogin} />
-    	) : (
-      	<MainApp 
-        	onLogout={handleLogout}
-    	isDarkMode={isDarkMode}
-        	setIsDarkMode={setIsDarkMode}
-      	/>
-    	)}
+      {!isAuthenticated ? (
+        <LoginComponent onLoginSuccess={handleLogin} />
+      ) : (
+        <MainApp 
+          onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
+      )}
     </div>
   );
 }
