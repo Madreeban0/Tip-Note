@@ -66,7 +66,7 @@ const LogoutIcon = () => (
   </svg>
 );
 
-// --- 0. Login Component (FIXED) ---
+// --- 0. Login Component (FIXED Error Handling) ---
 function LoginComponent({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,13 +74,26 @@ function LoginComponent({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // --- THIS IS THE FIX ---
+  // Clear error only when input changes, not when toggling form
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    setError(''); // Clear error on input change
+  };
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setError(''); // Clear error on input change
+  };
+  const toggleForm = () => {
+    setIsRegistering(!isRegistering);
+    // Don't clear error here automatically
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(''); // Clear previous errors before new attempt
 
-    // Uses the global API_URL
-    // Auth routes are at the root, not /api
     const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
     
     try {
@@ -90,32 +103,32 @@ function LoginComponent({ onLoginSuccess }) {
         body: JSON.stringify({ email, password }),
       });
       
-      const data = await response.json(); // Always try to parse JSON first
+      const data = await response.json(); 
 
       if (!response.ok) {
-        // Use the error message from the backend JSON (if available)
-        throw new Error(data.message || 'Authentication failed');
+        // Throw error from backend response
+        throw new Error(data.message || `Request failed with status ${response.status}`);
       }
       
-      // Save the token from the successful response
+      // Ensure token exists before saving
+      if (!data.token) {
+        console.error("API response missing token:", data);
+        throw new Error("Authentication succeeded but token was missing.");
+      }
+      
       localStorage.setItem('token', data.token); 
-      onLoginSuccess(); // Tell the App component we are logged in
+      onLoginSuccess(); 
     
     } catch (e) {
-      // Handle potential JSON parsing errors if response wasn't JSON
       if (e instanceof SyntaxError) {
         setError("Received an invalid response from the server.");
       } else {
-        setError(e.message);
+        setError(e.message); // Display the specific error from backend or fetch
       }
       console.error("Login/Register error:", e);
     } finally {
       setLoading(false);
     }
-    
-    // --- THIS IS THE FIX ---
-    // The "Demonstration" block has been REMOVED
-    
   };
 
   return (
@@ -136,7 +149,7 @@ function LoginComponent({ onLoginSuccess }) {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange} // Use new handler
               required
               className="w-full px-3 py-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="you@example.com"
@@ -150,7 +163,7 @@ function LoginComponent({ onLoginSuccess }) {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange} // Use new handler
               required
               minLength="6"
               className="w-full px-3 py-3 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -173,10 +186,7 @@ function LoginComponent({ onLoginSuccess }) {
         <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
           {isRegistering ? 'Already have an account?' : "Don't have an account?"}
           <button
-            onClick={() => {
-              setIsRegistering(!isRegistering);
-              setError('');
-            }}
+            onClick={toggleForm} // Use new handler
             className="text-purple-600 dark:text-purple-400 hover:underline font-medium ml-1"
           >
             {isRegistering ? 'Login' : 'Register'}
@@ -189,6 +199,7 @@ function LoginComponent({ onLoginSuccess }) {
 
 
 // --- 1. Sidebar Component ---
+// (No changes needed)
 function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, onLogout }) {
   const navItemClasses = "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors duration-200";
   const activeClasses = "bg-purple-100 dark:bg-gray-700 text-purple-700 dark:text-white font-medium";
@@ -248,6 +259,7 @@ function Sidebar({ page, onSetPage, onCreateNew, onToggleDarkMode, isDarkMode, o
 
 
 // --- 2. Dashboard Component ---
+// (No changes needed)
 function Dashboard({ notes, onEdit, onDelete, loading }) {
   return (
     <div className="w-full">
@@ -289,6 +301,7 @@ function Dashboard({ notes, onEdit, onDelete, loading }) {
 }
 
 // --- 3. Pinned Notes Component ---
+// (No changes needed)
 function PinnedNotes({ notes, onEdit, onDelete, loading }) {
   return (
     <div className="w-full">
@@ -334,6 +347,7 @@ function PinnedNotes({ notes, onEdit, onDelete, loading }) {
 
 
 // --- 4. Note Editor Component ---
+// (No changes needed)
 function NoteEditor({ note, onSave, onBack }) {
   const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
@@ -418,8 +432,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // --- THIS IS THE FIX ---
-  // Create a root path for the API, including the /api prefix
+  // API root includes the /api prefix
   const API_ROOT = `${API_URL}/api`;
 
   // --- API Functions ---
@@ -429,27 +442,21 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
     setLoading(true);
     setError('');
     try {
-      // --- THIS IS THE FIX ---
       // Get the token from storage
       const token = localStorage.getItem('token');
       if (!token) {
-        // If no token, log out immediately (or handle refresh token logic)
         onLogout();
-        // No need to throw an error here, onLogout handles the state change
-        return; // Stop fetching if no token
+        return; 
       }
       const headers = { 
         'Authorization': `Bearer ${token}` 
       };
       
-      // Fetch from the /api/notes endpoint with auth header
       const response = await fetch(`${API_ROOT}/notes`, { headers });
       
       if (response.status === 401 || response.status === 403) {
-        // Token is invalid or expired
         onLogout(); 
-        // Don't show generic network error, let the logout handle UI
-        return; // Stop processing if unauthorized
+        return; 
       }
       
       if (!response.ok) {
@@ -458,8 +465,8 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
       const data = await response.json();
       setNotes(data);
     } catch (e) {
-      // Only set error if it's not an auth issue (already handled by logout)
-      if (e.message !== "No authentication token found." && e.message !== "Invalid or expired token.") {
+      // Only set error if it's not an auth issue
+      if (!String(e.message).includes("token")) {
         setError(`Failed to fetch notes: ${e.message}`);
       }
       console.error("Fetch Notes Error:", e);
@@ -468,23 +475,20 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
     }
   };
 
-  // --- THIS IS THE FIX ---
-  // Re-fetch notes when the component mounts AND after a successful login
+  // Re-fetch notes when the component mounts
   useEffect(() => {
     fetchNotes();
-  }, []); // fetchNotes will check for token itself
+  }, []); // Empty dependency array means run once on mount
 
   // 2. Save Note (CREATE or UPDATE)
   const handleSaveNote = async (note) => {
     const isUpdating = !!note.id;
     const method = isUpdating ? 'PUT' : 'POST';
-    // Use the API_ROOT for the correct path
     const url = isUpdating ? `${API_ROOT}/notes/${note.id}` : `${API_ROOT}/notes`;
 
     try {
-      // Get the token and add it to the headers
       const token = localStorage.getItem('token');
-      if (!token) { onLogout(); return; } // Logout if no token
+      if (!token) { onLogout(); return; } 
       const headers = { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}` 
@@ -496,16 +500,15 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
         body: JSON.stringify({ title: note.title, content: note.content }),
       });
       
-      if (response.status === 401 || response.status === 403) { onLogout(); return; } // Logout if invalid token
+      if (response.status === 401 || response.status === 403) { onLogout(); return; } 
       
       if (!response.ok) {
         throw new Error('Failed to save note.');
       }
-      // After save, go back to dashboard and refresh
       handleGoToDashboard();
       await fetchNotes(); // Re-fetch notes after saving
     } catch (e) {
-      if (e.message !== "No authentication token found." && e.message !== "Invalid or expired token.") {
+      if (!String(e.message).includes("token")) {
         setError(`Failed to save note: ${e.message}`);
       }
       console.error("Save Note Error:", e);
@@ -514,30 +517,26 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
 
   // 3. Delete Note (DELETE)
   const handleDeleteNote = async (id) => {
-    // NOTE: No confirmation needed in this environment.
-    
     try {
-      // Get the token and add it to the headers
       const token = localStorage.getItem('token');
-      if (!token) { onLogout(); return; } // Logout if no token
+      if (!token) { onLogout(); return; } 
       const headers = { 
         'Authorization': `Bearer ${token}` 
       };
       
-      // Use the API_ROOT for the correct path
       const response = await fetch(`${API_ROOT}/notes/${id}`, {
         method: 'DELETE',
         headers: headers
       });
 
-      if (response.status === 401 || response.status === 403) { onLogout(); return; } // Logout if invalid token
+      if (response.status === 401 || response.status === 403) { onLogout(); return; } 
       
       if (!response.ok) {
         throw new Error('Failed to delete note.');
       }
       await fetchNotes(); // Re-fetch notes after deleting
     } catch (e) {
-      if (e.message !== "No authentication token found." && e.message !== "Invalid or expired token.") {
+      if (!String(e.message).includes("token")) {
         setError(`Failed to delete note: ${e.message}`);
       }
       console.error("Delete Note Error:", e);
@@ -552,7 +551,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
   };
 
   const handleGoToEditor = (note) => {
-    setCurrentNote(note); // 'note' is the full note object, or null for a new note
+    setCurrentNote(note); 
     setPage('noteEditor');
     setError('');
   };
@@ -634,26 +633,21 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // --- THIS IS THE FIX ---
   // Check for an existing token on app load
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       // TODO: You could add more robust token validation here
-      // (e.g., decode JWT, check expiration)
       setIsAuthenticated(true);
     }
   }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    // No need to explicitly re-fetch notes here. 
-    // MainApp will mount and its useEffect will call fetchNotes.
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    // Clear the token on logout
     localStorage.removeItem('token');
   };
 
@@ -662,12 +656,9 @@ export default function App() {
       {!isAuthenticated ? (
         <LoginComponent onLoginSuccess={handleLogin} />
       ) : (
-        // --- THIS IS THE FIX ---
-        // Pass a unique key based on isAuthenticated state.
-        // This forces MainApp to remount when isAuthenticated changes to true,
-        // ensuring its useEffect runs and fetches notes after login.
+        // Pass a unique key to force remount on login/logout
         <MainApp 
-          key={isAuthenticated ? 'authenticated' : 'unauthenticated'} // Add this key
+          key={isAuthenticated ? 'auth' : 'no-auth'} 
           onLogout={handleLogout}
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
