@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-// ====================================================================
-// --- CONFIGURATION ---
-// Your single source of truth for the backend URL
-// ====================================================================
+
 const API_URL = 'https://tipnote.onrender.com';
 // ====================================================================
 
@@ -28,6 +25,8 @@ const SunIcon = () => (
     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
   </svg>
+
+
 );
 
 const PlusIcon = () => (
