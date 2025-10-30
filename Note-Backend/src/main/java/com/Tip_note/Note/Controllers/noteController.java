@@ -23,7 +23,7 @@ record AuthRequest(String email, String password) {}
 
 
 @RestController
-@RequestMapping("/api/notes")
+@RequestMapping("/notes")
 @CrossOrigin(origins = "https://tippnote.netlify.app")
 public class noteController {
     

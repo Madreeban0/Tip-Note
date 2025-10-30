@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 // We don't need /api on this controller, so login is at /login
 // The WebConfig will handle CORS, but we can leave this here as a backup.
+@RequestMapping("/api")
 @CrossOrigin(origins = "https://tippnote.netlify.app") 
 public class AuthController {
 
