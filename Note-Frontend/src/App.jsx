@@ -386,7 +386,7 @@ function NoteEditor({ note, onSave, onBack }) {
             Content
           </label>
           <textarea
-    t   	id="content"
+       	id="content"
           	value={content}
           	onChange={(e) => setContent(e.target.value)}
           	placeholder="Write your note here..."
@@ -475,7 +475,7 @@ function MainApp({ onLogout, isDarkMode, setIsDarkMode }) {
         method: method,
         headers: headers,
         body: JSON.stringify({ title: note.title, content: note.content }),
-de     });
+    });
       if (!response.ok) {
         throw new Error('Failed to save note.');
       }
@@ -572,7 +572,7 @@ de     });
           	<PinnedNotes
           	  notes={notes}
           	  loading={loading}
-  s     	  onEdit={handleGoToEditor}
+      	  onEdit={handleGoToEditor}
           	  onDelete={handleDeleteNote}
         	  />
         	)}
@@ -580,7 +580,7 @@ de     });
           	<NoteEditor
           	  note={currentNote}
           	  onSave={handleSaveNote}
-s       	  onBack={handleGoToDashboard}
+     	  onBack={handleGoToDashboard}
     	    />
     	  )}
     	</main>
@@ -601,7 +601,7 @@ export default function App() {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
-E }
+ }
   }, [isDarkMode]);
 
   const handleLogin = () => {
