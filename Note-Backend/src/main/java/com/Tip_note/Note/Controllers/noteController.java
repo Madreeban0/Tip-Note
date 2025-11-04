@@ -23,24 +23,24 @@ record AuthRequest(String email, String password) {}
 
 
 @RestController
-@RequestMapping("/notes")
+@RequestMapping("/api/notes")
 @CrossOrigin(origins = "https://tippnote.netlify.app")
 public class noteController {
     
     @Autowired
     private noteRepository NoteRepository;
     
-    @GetMapping("/notes")
+    @GetMapping
     public List<Note> getAllNotes(){
         return NoteRepository.findAll();
     }
-      
-    @PostMapping("/notes")
+
+    @PostMapping
     public Note createNote(@RequestBody Note note) {
         return NoteRepository.save(note);
     }
 
-    @GetMapping("/note/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Note> getNoteById(@PathVariable Long id){
         Optional<Note> noteId = NoteRepository.findById(id);
 
@@ -51,7 +51,7 @@ public class noteController {
             return ResponseEntity.notFound().build();
         }
     }
-    @PutMapping("/notes/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note noteDetails){
         Optional<Note> optionalNote = NoteRepository.findById(id);
 
@@ -66,7 +66,7 @@ public class noteController {
         }
     } 
 
-    @DeleteMapping("/notes/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id){
         Optional<Note> optionalNote = NoteRepository.findById(id);
 
