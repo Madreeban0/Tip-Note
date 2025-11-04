@@ -39,8 +39,8 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF
             .cors(cors -> {}) // We are already handling CORS in WebConfig.java
             .authorizeHttpRequests(authz -> authz
-                // Allow /register and /login to be public
-                .requestMatchers("/register", "/login").permitAll()
+                // Allow /api/register and /api/login to be public
+                .requestMatchers("/api/register", "/api/login").permitAll()
                 // All other requests (like /api/notes) must be authenticated
                 .anyRequest().authenticated()
             )

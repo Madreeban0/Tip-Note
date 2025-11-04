@@ -94,7 +94,7 @@ function LoginComponent({ onLoginSuccess }) {
     setLoading(true);
     setError(''); // Clear previous errors before new attempt
 
-    const endpoint = isRegistering ? `${API_URL}/register` : `${API_URL}/login`;
+    const endpoint = `${API_URL}/api/${isRegistering ? 'register' : 'login'}`;
     
     try {
       const response = await fetch(endpoint, {
